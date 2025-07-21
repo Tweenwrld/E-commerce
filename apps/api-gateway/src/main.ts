@@ -29,7 +29,7 @@ const limiter = rateLimit({
   max: (req: any) => (req.user ? 1000 : 100), // 1000 requests for authenticated users, 100 for unauthenticated
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req: any) => req.ip,
+  // keyGenerator: (req: any) => req.ip,
 });
 
 app.use(limiter);
@@ -42,6 +42,6 @@ app.use('/',proxy('http://localhost:6001'));
 
 const port = process.env.PORT || 8080;
 const server = app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}/api`);
+  console.log(`API Gateway listening at http://localhost:${port}/api`);
 });
 server.on('error', console.error);

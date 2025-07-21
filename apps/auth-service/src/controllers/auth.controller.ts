@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { checkOtpRestrictions, handleForgotPassword, sendOtp, trackOtpRequests, validateRegistrationData, verifyOtp } from "../utils/auth.helper";
+import { checkOtpRestrictions, handleForgotPassword, sendOtp, trackOtpRequests, validateRegistrationData, verifyForgotPasswordOtp, verifyOtp } from "../utils/auth.helper";
 import prisma from "@packages/libs/prisma";
 import { AuthError, ValidationError } from "@packages/error-handler";
 import bcrypt from "bcryptjs";
@@ -144,7 +144,7 @@ export const verifyUserForgotPassword = async (
     next: NextFunction
 ) => {
 
-    await verifyForgotPasswordOtp(req, res, next, userType = "user");
+    await verifyForgotPasswordOtp(req, res, next);
     try {
         const { email, otp } = req.body;
 
@@ -162,7 +162,7 @@ export const verifyUserForgotPassword = async (
         return next(error);
         
     }
-}
+};
 
 // Reset password
 export const resetUserPassword = async (

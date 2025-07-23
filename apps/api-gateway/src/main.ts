@@ -1,6 +1,5 @@
 
 import express from 'express';
-import * as path from 'path';
 import cors from 'cors'
 import proxy from 'express-http-proxy';
 import morgan from 'morgan'
@@ -29,7 +28,7 @@ const limiter = rateLimit({
   max: (req: any) => (req.user ? 1000 : 100), // 1000 requests for authenticated users, 100 for unauthenticated
   standardHeaders: true,
   legacyHeaders: false,
-  // keyGenerator: (req: any) => req.ip,
+  keyGenerator: (req: any) => req.ip,
 });
 
 app.use(limiter);

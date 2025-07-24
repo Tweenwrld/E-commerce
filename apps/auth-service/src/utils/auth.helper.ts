@@ -11,7 +11,10 @@ export const validateRegistrationData = (data: any, userType: "user" | "seller")
     const { name, email, password, phone_number, country } = data;
 
     if (
-        !name || !email || !password || (userType === "seller" && (!phone_number || !country))
+        !name || 
+        !email || 
+        !password || 
+        (userType === "seller" && (!phone_number || !country))
     ) {
         throw new ValidationError('Missing required fields!');
     }
@@ -27,23 +30,25 @@ export const checkOtpRestrictions = async (
     next: NextFunction
 ) => { 
     if (await redis.get(`otp_lock:${email}`)) {
-        return next(
+        throw next(
             new ValidationError(
                 'Account is locked due to multiple failed attempts! Try again after 30 minutes.'
             )
         );
     }
 
+    // Security spamming prevention of OTP
     if (await redis.get(`otp_spam_lock:${email}`)) {
-        return next(
+        throw next(
             new ValidationError(
                 'Too many OTP requests! Please wait for 1 hour before requesting again.'
             )
         );
     }
 
+    // 1 minute wait next OTP request
     if (await redis.get(`otp_cooldown:${email}`)) {
-        return next(
+        throw next(
             new ValidationError(
                 'Please wait for 1 minute before requesting a new OTP.'
             )
@@ -56,11 +61,11 @@ export const trackOtpRequests = async (
     next: NextFunction
 ) => {
     const otpRequestKey = `otp_requests:${email}`;
-    let otpRequests = parseInt(await redis.get(otpRequestKey) || '0');
+    let otpRequests = parseInt((await redis.get(otpRequestKey)) || '0');
 
     if (otpRequests >= 2) {
-        await redis.set(`otp_lock:${email}`, 'locked', 'EX', 3600); 
-        return next(
+        await redis.set(`otp_spam_lock:${email}`, 'locked', 'EX', 3600); 
+        throw next(
             new ValidationError(
                 'Too many OTP requests! Please wait for 1 hour before requesting again.'
             )
@@ -96,7 +101,7 @@ export const verifyOtp = async (
     }
 
     const failedAttemptKey = `otp_attempts:${email}`;
-    const failedAttempts = parseInt(await redis.get(failedAttemptKey) || '0');
+    const failedAttempts = parseInt((await redis.get(failedAttemptKey)) || '0');
 
     if (storedOtp !== otp) {
         if (failedAttempts >= 2) {
@@ -155,7 +160,7 @@ export const verifyForgotPasswordOtp = async (
         const { email, otp } = req.body;
 
         if (!email || !otp) {
-            return next(new ValidationError('Email and OTP are required!'));
+            throw next(new ValidationError('Email and OTP are required!'));
         }
 
         await verifyOtp(email, otp, next);

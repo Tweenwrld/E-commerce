@@ -29,7 +29,7 @@ export const userRegistration = async (
         await sendOtp(name, email, "user-activation-mail");
 
         res.status(200).json({
-            message: 'OTP sent to email! Please verify your account.',
+            message: 'OTP sent to email. Please verify your account.',
         });
     } catch (error) {
         return next(error);
@@ -63,7 +63,7 @@ export const verifyUser = async (
 
      res.status(201).json({
         success: true,
-        message: 'User account verified successfully!',
+        message: 'User registered successfully!',
     });
     
     } catch (error) {
